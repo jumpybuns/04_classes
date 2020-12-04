@@ -1,5 +1,5 @@
 const express = require('express');
-const stack = require('./lib/stack.js');
+const { stripInput } = require('.utils.js');
 const app = express();
 const { Stack } = require('./lib/stack.js');
 
@@ -7,25 +7,26 @@ app.use(express.json());
 
 app.post('/lint', (req, res) => {
     const newStack = new Stack();
-    const onlyBrackets = stripInput(req.body.code);
-
-    onlyBrackets.forEach(bracket => {
-        if (bracket === '{' || '[' || '(') {
-            newStack.push(bracket);
+    const stringArray = stripInput(req.body.code);
+    stringArray.forEach(char => {
+        if (char === '{' || char === '[' || char === '(') {
+            newStack.push(char);
         } else {
-
+            const top = newStack.peek();
+            if (top === '{' && char === '}') {
+                newStack.pop();
+            } else if (top === '[' && char === ']') {
+                newStack.pop();
+            } else if (top === '(' && char === ')') {
+                newStack.pop();
+            } else {
+                result = `missing ${bracket}`;
+            };
         }
-    })
-    res.send(newStack)
-    //logic to check brackets
-    // const stuff = (src) => {
-    //     Promise.all([newStack.push("{}[]")])
-    //         .then(newStack => newStack.pop())
-    //         .then(res => res.json())
-    //         .then(newStack => newStack.peek());
-
-    // })
-});
+    }
+    )
+    res.send(result);
+})
 
 
 app.listen(7890, () => {
